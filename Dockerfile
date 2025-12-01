@@ -1,9 +1,8 @@
-FROM openjdk:17-jdk-slim
+FROM openjdk:17
 
 WORKDIR /app
 
 # Le JAR généré par "mvn clean package"
-# (d’après ton pom.xml: artifactId=eventsProject, version=1.0.0)
 COPY target/eventsProject-1.0.0.jar app.jar
 
 EXPOSE 8089
