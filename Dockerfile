@@ -1,10 +1,9 @@
-FROM openjdk:17-jdk-slim
+FROM eclipse-temurin:17-jdk
 
 WORKDIR /app
 
-# Le JAR généré par "mvn clean package"
 COPY target/eventsProject-1.0.0.jar app.jar
 
-EXPOSE 8080
+EXPOSE 8089
 
 ENTRYPOINT ["java", "-jar", "app.jar"]

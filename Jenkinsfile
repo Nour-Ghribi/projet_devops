@@ -3,12 +3,7 @@ pipeline {
 
     stages {
 
-        stage('Checkout code') {
-            steps {
-                // 🟢 ADAPTER SI BESOIN : URL + branche
-                git branch: 'main', url: 'git@github.com:Nour-Ghribi/eventsProject.git'
-            }
-        }
+        
 
         stage('Build & Unit Tests (JUnit)') {
             steps {
@@ -21,7 +16,7 @@ pipeline {
                 echo 'Analyse de la qualité du code...'
                 sh '''
                     mvn sonar:sonar \
-                      -Dsonar.projectKey=eventsProject \
+                      -Dsonar.projectKey=projet_devops \
                       -Dsonar.host.url=http://10.0.2.15:9000 \
                       -Dsonar.login=squ_f9a8079370255fa83be0a15efb4ddc8af96cac84
                 '''
@@ -46,7 +41,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    // 🟢 ADAPTER le nom si besoin
+                    // 🟢 l'image locale sera construite à partir du Dockerfile
                     sh 'docker build -t nourxgh/eventsproject:1.0.0 .'
                 }
             }
@@ -55,9 +50,10 @@ pipeline {
         stage('Push Docker Image to DockerHub') {
             steps {
                 script {
-                    // 🟢 ICI on utilise le credentials DockerHub (Username+Password/PAT)
+                    // 🟢 ICI on utilise le credentials DockerHub (Username + PAT)
+                    // Remplace 'dockerhub-conn' par l'ID EXACT de ton credentials
                     withCredentials([usernamePassword(
-                        credentialsId: 'dockerhub-conn',   // ID du credentials Jenkins
+                        credentialsId: 'dockerhub-conn',
                         usernameVariable: 'DOCKER_USER',
                         passwordVariable: 'DOCKER_PASS'
                     )]) {
