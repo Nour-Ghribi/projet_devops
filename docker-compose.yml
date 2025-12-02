@@ -1,9 +1,8 @@
-version: '3.8'
-
 services:
+
   mysql:
     image: mysql:8.0
-    container_name: eventsproject-mysql
+    container_name: events_mysql
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: root
@@ -12,35 +11,60 @@ services:
       - "3306:3306"
     volumes:
       - mysql-data:/var/lib/mysql
-    networks:
-      - eventsproject-network
     healthcheck:
-      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot" ]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 30s
+      start_period: 20s
 
   app:
     image: nourxgh/eventsproject:1.0.0
-    container_name: eventsproject-app
+    container_name: events_app
     restart: unless-stopped
     ports:
       - "8089:8089"
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/eventsProject?createDatabaseIfNotExist=true&useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC
-      - SPRING_DATASOURCE_USERNAME=root
-      - SPRING_DATASOURCE_PASSWORD=root
-      - SERVER_PORT=8089
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/eventsProject?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
     depends_on:
       mysql:
         condition: service_healthy
-    networks:
-      - eventsproject-network
 
-networks:
-  eventsproject-network:
-    driver: bridge
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: cadvisor
+    restart: unless-stopped
+    ports:
+      - "8083:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    volumes:
+      - grafana-data:/var/lib/grafana
 
 volumes:
   mysql-data:
+  grafana-data:
