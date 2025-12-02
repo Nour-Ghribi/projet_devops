@@ -1,7 +1,5 @@
-version: '3.8'
-
 services:
-  db:
+  mysql_events:
     image: mysql:8.0
     container_name: mysql_events
     environment:
@@ -14,10 +12,11 @@ services:
     image: nourxgh/eventsproject:1.0.0
     container_name: events_project
     depends_on:
-      - db
+      - mysql_events
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/eventsProject?createDatabaseIfNotExist=true&useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql_events:3306/eventsProject?createDatabaseIfNotExist=true&useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC
       SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: ""
+      SPRING_DATASOURCE_PASSWORD: root
     ports:
       - "8089:8089"
+
