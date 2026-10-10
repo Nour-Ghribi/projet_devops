@@ -14,12 +14,14 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 echo 'Analyse de la qualité du code...'
-                sh '''
-                    mvn sonar:sonar \
-                      -Dsonar.projectKey=projet_devops \
-                      -Dsonar.host.url=http://10.0.2.15:9000 \
-                      -Dsonar.login=squ_f9a8079370255fa83be0a15efb4ddc8af96cac84
-                '''
+                withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
+                    sh '''
+                        mvn sonar:sonar \
+                          -Dsonar.projectKey=projet_devops \
+                          -Dsonar.host.url=${SONAR_HOST_URL:-http://10.0.2.15:9000} \
+                          -Dsonar.token=$SONAR_TOKEN
+                    '''
+                }
             }
         }
 
@@ -31,10 +33,14 @@ pipeline {
 
         stage('Deploy to Nexus (Mise en place de la version)') {
             steps {
-                sh '''
-                    mvn deploy -DskipTests \
-                      -DaltDeploymentRepository=deploymentRepo::default::http://admin:nexus@10.0.2.15:8081/repository/maven-releases/
-                '''
+                withCredentials([usernamePassword(credentialsId: 'nexus-deployer',
+                                                  usernameVariable: 'NEXUS_USER',
+                                                  passwordVariable: 'NEXUS_PASS')]) {
+                    sh '''
+                        mvn deploy -DskipTests -s ci-settings.xml \
+                          -DaltDeploymentRepository=deploymentRepo::default::http://10.0.2.15:8081/repository/maven-releases/
+                    '''
+                }
             }
         }
 
